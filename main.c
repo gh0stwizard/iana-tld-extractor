@@ -1,9 +1,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
 #include <assert.h>
 #include <limits.h>
 #include <locale.h>
+#ifdef HAVE_CURL
+#include <curl/curl.h>
+#include <time.h>
+#endif
 #include <myhtml/api.h>
 #include <idn/api.h>
 #include "utf8_decode.h"
@@ -310,24 +315,136 @@ load_html_file (const char* filename)
 }
 
 
+#ifdef HAVE_CURL
+#define CURL_CHECK(x) do { assert ((x) == CURLE_OK); } while (0)
+
+#ifndef CURL_MAX_RETRIES
+#define CURL_MAX_RETRIES 3
+#endif
+
+#ifndef CURL_RETRY_SLEEP_SEC
+#define CURL_RETRY_SLEEP_SEC 1
+#endif
+
+#ifndef ROOT_DB_URL
+#define ROOT_DB_URL "https://www.iana.org/domains/root/db"
+#endif
+
+
+static void
+init_curl (void)
+{
+    CURL_CHECK(curl_global_init (CURL_GLOBAL_ALL));
+}
+
+
+static void
+free_curl (void)
+{
+    curl_global_cleanup ();
+}
+
+
+static size_t
+curl_write_cb (char *data, size_t size, size_t nmemb, void *userp)
+{
+    size_t realsize = size * nmemb;
+    FILE *fh = (FILE *) userp;
+
+
+    if (fwrite (data, size, nmemb, fh) == 0) {
+        fprintf (stderr, "fwrite: %s\n", strerror(errno));
+        return 0;
+    }
+
+    return realsize;
+}
+
+
+static int
+download (const char *url, const char *outfile)
+{
+    CURLcode code;
+    CURL *curl;
+    int retry = 0;
+    int max_retries = CURL_MAX_RETRIES;
+    struct timespec retry_ts = { CURL_RETRY_SLEEP_SEC, 0 };
+    FILE *fh;
+
+
+    fh = fopen (outfile, "w");
+    assert (fh != NULL);
+
+    curl = curl_easy_init ();
+    assert (curl != NULL);
+
+    curl_easy_setopt (curl, CURLOPT_URL, url);
+    curl_easy_setopt (curl, CURLOPT_FOLLOWLOCATION, 1L);
+    curl_easy_setopt (curl, CURLOPT_WRITEFUNCTION, curl_write_cb);
+    curl_easy_setopt (curl, CURLOPT_WRITEDATA, (void *) fh);
+
+    do {
+        code = curl_easy_perform (curl);
+
+        if (code == CURLE_OK)
+            break;
+
+        if (code == CURLE_COULDNT_RESOLVE_HOST ||
+            code == CURLE_OPERATION_TIMEDOUT)
+        {
+            if (retry++ >= max_retries)
+                break;
+
+            assert (fseek (fh, 0L, SEEK_SET) != 0);
+            (void) nanosleep (&retry_ts, NULL);
+        }
+    } while (code != CURLE_OK);
+
+    if (code != CURLE_OK)
+        fprintf (stderr, "curl: %s\n", curl_easy_strerror (code));
+
+    curl_easy_cleanup (curl);
+    fclose (fh);
+
+    return (code == CURLE_OK);
+}
+#endif
+
+
 extern int
 main (int argc, char *argv[])
 {
-    struct res_html res;
+    struct res_html data;
 
 
     setlocale (LC_ALL, "en_US.UTF-8");
+#ifdef HAVE_CURL
+    init_curl ();
+#endif
     init_myhtml ();
     init_idn (&ctx);
 
-    while (argc-- >= 2) {
-        res = load_html_file(argv[argc]);
-        myhtml_parse(tree, MyENCODING_UTF_8, res.html, res.size);
-        parse_html (tree);
-        free (res.html);
+
+    if (argc < 2) {
+        fprintf (stderr, "usage: %s [-d] FILE\n", argv[0]);
+        return 1;
     }
+
+#ifdef HAVE_CURL
+    if (strcmp (argv[1], "-d") == 0)
+        if (! download (ROOT_DB_URL, argv[argc - 1]))
+            return 2;
+#endif
+
+    data = load_html_file (argv[argc - 1]);
+    myhtml_parse (tree, MyENCODING_UTF_8, data.html, data.size);
+    parse_html (tree);
+    free (data.html);
 
     idn_resconf_destroy (ctx);
     free_myhtml ();
+#ifdef HAVE_CURL
+    free_curl ();
+#endif
     return 0;
 }
