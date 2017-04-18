@@ -3,8 +3,10 @@
 #include <string.h>
 #include <assert.h>
 #include <limits.h>
+#include <locale.h>
 #include <myhtml/api.h>
 #include <idn/api.h>
+#include "utf8_decode.h"
 
 
 #define ARRAY_SIZE(a) (sizeof(a)/sizeof(a[0]))
@@ -15,6 +17,8 @@
 
 static myhtml_tree_t *tree;
 static myhtml_t *myhtml;
+static idn_resconf_t ctx;
+
 
 struct res_html {
     char  *html;
@@ -45,7 +49,6 @@ static void
 init_idn (idn_resconf_t *ctx)
 {
     idn_result_t r;
-    char *idnconf[] = { "map tr46-processing-deviation", NULL };
 
 
     r = idn_resconf_initialize ();
@@ -54,11 +57,8 @@ init_idn (idn_resconf_t *ctx)
     r = idn_resconf_create (ctx);
     assert (r == idn_success);
 
-    if (ARRAY_SIZE(idnconf) <= 1)
-        return;
-
-    r = idn_resconf_loadstrings (*ctx, idnconf);
-    assert (r == idn_success);
+    idn_resconf_setlocalencoding (*ctx, NULL);
+    idn_resconf_setlocalcheckfile (*ctx, NULL);
 }
 
 
@@ -72,12 +72,99 @@ free_myhtml (void)
 }
 
 
-inline static void
-sanitize_text (char *t, size_t length)
+static const char *
+sanitize_text (const char *text, size_t length, int skipdot)
 {
-    for (size_t i = 0; i < length; i++, t++)
-        if (*t == '\r' || *t == '\n')
-            *t = ' ';
+#define TEXT_SIZE 2048
+
+    int c1, c2;         /* characters */
+    int p1 = 0, p2 = 0; /* byte position of characters */
+    int pos = 0;        /* position in sanitized array */
+    static char sanitized[TEXT_SIZE];
+
+
+/* html data contain some unneccessary characters:
+ * 1) such characters as '&lrm;' and '&rlm;' broke encoding to punycode;
+ * 2) we don't want any '\r', '\n' characters in the output CSV file.
+ */
+#define SKIP(c, p, l) do { \
+    if ((c) < 0x007f && (((char)c) == '\r' || ((char)c) == '\n')) { \
+        /* nop */ \
+    } \
+    else if (skipdot && ((c) < 0x007f) && ((char)c) == '.') { \
+        /* nop */ \
+    } \
+    else if ((c) == 0x200e || (c) == 0x200f) { \
+        /* nop */ \
+    } \
+    else { \
+        assert (pos < TEXT_SIZE); \
+        memcpy (sanitized + pos, text + p, l); \
+        pos += l; \
+    } \
+} while (0)
+
+
+    utf8_decode_init ((char *) text, length);
+    /* look forward for characters and their lengths.
+     * Such way (may be ugly) helps us avoid creation of utf8_encode() func.
+     */
+    for (;;) {
+        c1 = utf8_decode_next ();
+        p1 = utf8_decode_at_byte ();
+
+        if (c1 < 0) {
+            if (c2 > 0) { /* it is possible that we miss something */
+                /* at p2, length: len - p2 */
+                SKIP(c2, p2, length - p2);
+            }
+            break;
+        }
+
+        if (p2 > 0) { /* previous character */
+            /* at p2, length: p1 - p2 */
+            SKIP(c2, p2, p1 - p2);
+        }
+
+        /* look forward */
+        c2 = utf8_decode_next ();
+        p2 = utf8_decode_at_byte ();
+
+        if (c2 > 0) {
+            /* at p1, length: p2 - p1 */
+            SKIP(c1, p1, p2 - p1);
+        }
+        else {
+            /* it possible that we read everything; does not work always. */
+            /* at p1, length: len - p2 */
+            SKIP(c1, p1, length - p1);
+        }
+    }
+
+    assert (c1 == UTF8_END);
+    sanitized[pos] = '\0';
+
+    return sanitized;
+}
+
+
+static const char *
+encode_domain (const char *domain, size_t length)
+{
+    idn_action_t actions = IDN_ENCODE_REGIST;
+    idn_result_t r;
+#define DOMAIN_SIZE 1024
+    static char result[DOMAIN_SIZE]; /* XXX no critic */
+
+
+    r = idn_res_encodename (ctx, actions, domain, result, DOMAIN_SIZE - 1);
+
+    if (r != idn_success) {
+        fprintf (stderr, "%s: %s\n", domain, idn_result_tostring(r));
+        return domain;
+    }
+
+    return result;
 }
 
 
@@ -87,7 +174,6 @@ parse_tld (myhtml_tree_node_t *parent)
     myhtml_tree_node_t *node;
     myhtml_collection_t *td;
     myhtml_tree_t *t;
-    char *copy = NULL;
 #define get_tagid(n) myhtml_token_node_tag_id (myhtml_node_token ((n)))
 
     node = myhtml_node_child (parent);
@@ -111,13 +197,19 @@ parse_tld (myhtml_tree_node_t *parent)
         for (size_t j = 0; j < txt->length; j++) {
             size_t len = 0;
             const char *text = myhtml_node_text (txt->list[j], &len);
+            /* skip empty lines */
             if (len > 0 && text[0] == '\n')
                 continue;
-            copy = strdup (text);
-            sanitize_text (copy, len);
-            printf ("\"%.*s\"%s",
-                len, copy, (i == td->length - 1) ? "" : ",");
-            free (copy);
+            if (i == 0) {
+                /* domain */
+                const char *copy = sanitize_text (text, len, 1);
+                printf ("\"%s\",", encode_domain (copy, strlen (copy)));
+            }
+            else {
+                /* type * sponsor */
+                const char *copy = sanitize_text (text, len, 0);
+                printf ("\"%s\"%s", copy, (i == td->length - 1) ? "" : ",");
+            }
         }
 
         myhtml_collection_destroy (txt);
@@ -221,10 +313,10 @@ load_html_file (const char* filename)
 extern int
 main (int argc, char *argv[])
 {
-    idn_resconf_t ctx;
     struct res_html res;
 
 
+    setlocale (LC_ALL, "en_US.UTF-8");
     init_myhtml ();
     init_idn (&ctx);
 

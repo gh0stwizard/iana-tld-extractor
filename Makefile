@@ -1,17 +1,17 @@
 IDNKIT_CFLAGS ?= -I../../../local/include
-IDNKIT_LIBS ?= -L../../../local/lib -lidnkitlite
+IDNKIT_LIBS ?= -L../../../local/lib -lidnkit
 
 MYHTML_CFLAGS = -Imyhtml/include
 MYHTML_LIBS = -Lmyhtml/lib -lmyhtml
 MYHTML_LIBS_STATIC = $(MYHTML_LIBS)_static
 
 CFLAGS ?= 
-CFLAGS += -Wall -std=c99
+CFLAGS += -Wall -std=c99 -pedantic
 CFLAGS += $(IDNKIT_CFLAGS) $(MYHTML_CFLAGS)
 CFLAGS += -D_POSIX_C_SOURCE=200809L -D_GNU_SOURCE
 #CFLAGS += -D_XOPEN_SOURCE=500 -D_SVID_SOURCE
 LDFLAGS ?=
-LDFLAGS += -static
+#LDFLAGS += -static
 LIBS ?= 
 LIBS += $(IDNKIT_LIBS) $(MYHTML_LIBS)
 LIBS_STATIC = $(IDNKIT_LIBS) $(MYHTML_LIBS_STATIC)
@@ -28,7 +28,7 @@ dev: all
 
 $(TARGET): $(OBJECTS)
 	# shared linkage
-	$(CC) $(LDFLAGS) -o $@ $(OBJECTS) $(LIBS_STATIC)
+	$(CC) $(LDFLAGS) -o $@ $(OBJECTS) $(LIBS)
 
 %.o: %.c
 	$(CC) -c $(CFLAGS) -o $@ $<
