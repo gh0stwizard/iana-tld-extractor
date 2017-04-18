@@ -41,7 +41,7 @@ shell> ./iana-tld-extractor -d my.db > tld.csv
 
 ## Results
 
-You may find out the latest parsed CSV file in this repository: [tld.cvs][7].
+You may find out the latest parsed CSV file in this repository: [tld.csv][7].
 
 
 ## Dependencies
