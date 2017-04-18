@@ -1,4 +1,5 @@
 *.o
 *.csv
 *.db
+core
 iana-tld-extractor
