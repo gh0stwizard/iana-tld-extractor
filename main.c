@@ -93,7 +93,8 @@ sanitize_text (const char *text, size_t length, int skipdot)
  * 2) we don't want any '\r', '\n' characters in the output CSV file.
  */
 #define SKIP(c, p, l) do { \
-    if ((c) < 0x007f && (((char)c) == '\r' || ((char)c) == '\n')) { \
+    if ((c) < 0x007f && \
+        (((char)c) == '\r' || ((char)c) == '\n' || ((char)c) == '"' )) { \
         /* nop */ \
     } \
     else if (skipdot && ((c) < 0x007f) && ((char)c) == '.') { \
