@@ -3,3 +3,4 @@
 *.swp
 core
 iana-tld-extractor
+private/

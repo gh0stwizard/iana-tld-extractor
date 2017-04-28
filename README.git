@@ -1,0 +1,10 @@
+This repository contains git modules. After cloning this repository
+you have to fetch modules data:
+
+% git submodule init
+% git submodule update --checkout
+
+To update modules data to the latest revision use the following command
+(do NOT use it if don't know what you are doing):
+
+% git submodule update --remote
