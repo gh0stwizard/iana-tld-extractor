@@ -6,6 +6,8 @@
 This is a small utility derives data from HTML and print out
 the result in [CSV][5] format.
 
+If you need just the result CSV file, see [this file][7].
+
 
 ## Features
 
