@@ -299,7 +299,7 @@ parse_html (myhtml_tree_t *tree)
     for (size_t i = 0; i < tr->length; i++)
         parse_tld (tr->list[i]);
 
-    /*XXX segfault in mycore_free */
+    /*XXX segfault in mycore_free (still exists in 4.0.5) */
 //    myhtml_collection_destroy (tbody);
 //    myhtml_collection_destroy (tr);
 
