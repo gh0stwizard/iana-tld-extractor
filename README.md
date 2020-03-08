@@ -13,15 +13,51 @@ the result in [CSV][5] format.
 * Converts IDN domains to Punycode
 
 
+## Build
+
+Before building the tool, install the [idnkit][4] library.
+By default `iana-tld-extractor` expects that `idnkit` was
+installed to `/usr/local`.
+
+Then prepare `myhtml` git submodule, see [README.git][9] file
+for details. After that build the tool.
+
+```
+% git submodule init
+% git submodule update --checkout
+% make
+```
+
+If `idnkit` was installed to a different path, then use
+`IDNKIT_DIR` variable as shown below.
+
+```
+% make IDNKIT_DIR=/path/to/idnkit
+```
+
+
 ## Usage
 
+Ensure that LD_LIBRARY_PATH contains path to `libmyhtml.so`.
+The example below expecting that you are in the same dir,
+where you built `iana-tld-extractor`.
+
 ```
-shell> ./iana-tld-extractor
-usage: ./iana-tld-extractor [-d] FILE
+% export LD_LIBRARY_PATH=myhtml/lib
+% ./iana-tld-extractor
+usage: ./iana-tld-extractor [-d] HTML_FILE
 ```
 
-Where `-d` option to download a fresh copy from the IANA website and 
-save that HTML data into specified `FILE`.
+Where `-d` option to download a fresh copy of the HTML page
+from the IANA website and save that HTML data into
+specified `FILE`.
+
+To save the result CSV, please use pipe redirection to a file,
+as shown below.
+
+```
+% ./iana-tld-extractor -d last.html > last_tld.csv
+```
 
 
 ### Download and print CSV to STDOUT
@@ -70,3 +106,4 @@ This software is licensed under "The 2-Clause BSD License".
 [6]: https://www.gnu.org/software/make/
 [7]: /tld.csv
 [8]: http://www.json.org/JSON_checker/
+[9]: /README.git

@@ -267,6 +267,7 @@ parse_html (myhtml_tree_t *tree)
     /*XXX segfault in mycore_free */
 //    myhtml_collection_destroy (tbody);
 //    myhtml_collection_destroy (tr);
+
     myhtml_collection_destroy (table);
 }
 
@@ -279,38 +280,38 @@ load_html_file (const char* filename)
         fprintf(stderr, "Can't open html file: %s\n", filename);
         exit(EXIT_FAILURE);
     }
-    
+
     if(fseek(fh, 0L, SEEK_END) != 0) {
         fprintf(stderr, "Can't set position (fseek) in file: %s\n", filename);
         exit(EXIT_FAILURE);
     }
-    
+
     long size = ftell(fh);
-    
+
     if(fseek(fh, 0L, SEEK_SET) != 0) {
         fprintf(stderr, "Can't set position (fseek) in file: %s\n", filename);
         exit(EXIT_FAILURE);
     }
-    
+
     if(size <= 0) {
         fprintf(stderr, "Can't get file size or file is empty: %s\n", filename);
         exit(EXIT_FAILURE);
     }
-    
+
     char *html = (char*)malloc(size + 1);
     if(html == NULL) {
         fprintf(stderr, "Can't allocate mem for html file: %s\n", filename);
         exit(EXIT_FAILURE);
     }
-    
+
     size_t nread = fread(html, 1, size, fh);
     if (nread != size) {
         fprintf(stderr, "could not read %ld bytes (%zu bytes done)\n", size, nread);
         exit(EXIT_FAILURE);
     }
-    
+
     fclose(fh);
-    
+
     struct res_html res = { html, (size_t) size };
     return res;
 }
@@ -383,6 +384,7 @@ download (const char *url, const char *outfile)
     curl_easy_setopt (curl, CURLOPT_FOLLOWLOCATION, 1L);
     curl_easy_setopt (curl, CURLOPT_WRITEFUNCTION, curl_write_cb);
     curl_easy_setopt (curl, CURLOPT_WRITEDATA, (void *) fh);
+    curl_easy_setopt (curl, CURLOPT_USERAGENT, "IANA TLD Extractor/1.0");
 
     do {
         code = curl_easy_perform (curl);
@@ -427,7 +429,7 @@ main (int argc, char *argv[])
 
 
     if (argc < 2) {
-        fprintf (stderr, "usage: %s [-d] FILE\n", argv[0]);
+        fprintf (stderr, "usage: %s [-d] HTML_FILE\n", argv[0]);
         return 1;
     }
 
@@ -435,6 +437,9 @@ main (int argc, char *argv[])
     if (strcmp (argv[1], "-d") == 0)
         if (! download (ROOT_DB_URL, argv[argc - 1]))
             return 2;
+#else
+    if (strcmp (argv[1], "-d") == 0)
+        fprintf (stderr, "WARNING: no curl support");
 #endif
 
     data = load_html_file (argv[argc - 1]);

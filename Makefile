@@ -1,5 +1,6 @@
-IDNKIT_CFLAGS ?= -I../../../local/include
-IDNKIT_LIBS ?= -L../../../local/lib -lidnkitlite
+IDNKIT_DIR ?= /usr/local
+IDNKIT_CFLAGS ?= -I$(IDNKIT_DIR)/include
+IDNKIT_LIBS ?= -L$(IDNKIT_DIR)/lib -lidnkit
 
 MYHTML_CFLAGS = -Imyhtml/include
 MYHTML_LIBS = -Lmyhtml/lib -lmyhtml
@@ -15,9 +16,7 @@ CFLAGS += -Wall -std=c99 -pedantic
 CFLAGS += -DHAVE_CURL
 CFLAGS += $(IDNKIT_CFLAGS) $(MYHTML_CFLAGS)
 CFLAGS += -D_POSIX_C_SOURCE=200809L -D_GNU_SOURCE
-#CFLAGS += -D_XOPEN_SOURCE=500 -D_SVID_SOURCE
 LDFLAGS ?=
-#LDFLAGS += -static
 LIBS ?= 
 LIBS += $(IDNKIT_LIBS) $(MYHTML_LIBS)
 LIBS += $(CURL_LIBS)
@@ -28,11 +27,10 @@ TARGET = iana-tld-extractor
 SOURCES = $(wildcard *.c)
 OBJECTS = $(patsubst %.c, %.o, $(SOURCES))
 
-all: $(TARGET)
+all: myhtml $(TARGET)
 
-# debug
-dev: CFLAGS += -g -D_DEBUG
-dev: all
+debug: CFLAGS += -g -D_DEBUG
+debug: all
 
 $(TARGET): $(OBJECTS)
 	# shared linkage
@@ -40,6 +38,8 @@ $(TARGET): $(OBJECTS)
 
 %.o: %.c
 	$(CC) -c $(CFLAGS) -o $@ $<
+
+distclean: clean myhtml-clean
 
 clean:
 	# cleanup
@@ -49,4 +49,12 @@ strip: $(TARGET)
 	# strip
 	strip --strip-unneeded -R .comment -R .note -R .note.ABI-tag $(TARGET)
 
-.PHONY: all clean dev strip
+myhtml:
+	# myhtml-library
+	cd myhtml; $(MAKE) library
+
+myhtml-clean:
+	# myhtml-clean
+	cd myhtml; $(MAKE) clean; rm -f myhtml.pc
+
+.PHONY: all distclean clean debug strip myhtml

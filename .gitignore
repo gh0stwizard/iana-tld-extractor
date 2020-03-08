@@ -1,6 +1,8 @@
 *.o
 *.db
 *.swp
+*.htm
+*.html
 core
 iana-tld-extractor
 private/
