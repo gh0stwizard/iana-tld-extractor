@@ -78,6 +78,7 @@ You may find out the latest parsed CSV file in this repository: [tld.csv][7].
 ## SEE ALSO
 
 * [github:incognico/list-of-top-level-domains][10]
+* [Mozilla effective tld names][11]
 
 
 ## Credits
@@ -100,3 +101,4 @@ This software is licensed under "The 2-Clause BSD License".
 [8]: http://www.json.org/JSON_checker/
 [9]: /README.git
 [10]: https://github.com/incognico/list-of-top-level-domains
+[11]: http://mxr.mozilla.org/mozilla-central/source/netwerk/dns/effective_tld_names.dat?raw=1
