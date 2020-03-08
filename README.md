@@ -11,9 +11,16 @@ If you need just the result CSV file, see [this file][7].
 
 ## Features
 
-* Sanitize data from uneccessary characters (e.g. LF)
 * Converts IDN domains to Punycode
 * Save result to a CSV file
+
+
+## Dependencies
+
+* [libcurl][2] (optionally)
+* [myhtml][3]
+* [idnkit][4]
+* [GNU make][6] to build
 
 
 ## Build
@@ -68,12 +75,9 @@ as shown below.
 You may find out the latest parsed CSV file in this repository: [tld.csv][7].
 
 
-## Dependencies
+## SEE ALSO
 
-* [libcurl][2] (optionally)
-* [myhtml][3]
-* [idnkit][4]
-* [GNU make][6] to build
+* [github:incognico/list-of-top-level-domains][10]
 
 
 ## Credits
@@ -95,3 +99,4 @@ This software is licensed under "The 2-Clause BSD License".
 [7]: /tld.csv
 [8]: http://www.json.org/JSON_checker/
 [9]: /README.git
+[10]: https://github.com/incognico/list-of-top-level-domains
