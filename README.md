@@ -11,6 +11,7 @@ the result in [CSV][5] format.
 
 * Sanitize data from uneccessary characters (e.g. LF)
 * Converts IDN domains to Punycode
+* Save result to a CSV file
 
 
 ## Build
@@ -57,21 +58,6 @@ as shown below.
 
 ```
 % ./iana-tld-extractor -d last.html > last_tld.csv
-```
-
-
-### Download and print CSV to STDOUT
-
-```
-shell> ./iana-tld-extractor -d my.db
-shell> # output CSV data
-```
-
-
-### Download and save to file
-
-```
-shell> ./iana-tld-extractor -d my.db > tld.csv
 ```
 
 
