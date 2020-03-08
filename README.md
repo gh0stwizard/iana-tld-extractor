@@ -1,5 +1,6 @@
 # iana-tld-extractor -- [IANA Root Zone Database][1] extractor
 
+![CI](https://github.com/gh0stwizard/iana-tld-extractor/workflows/CI/badge.svg)
 
 ## Description
 
