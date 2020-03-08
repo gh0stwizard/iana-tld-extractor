@@ -10,11 +10,15 @@ on:
     paths:
     - 'src/**'
     - 'myhtml/**'
+    - 'Makefile'
+    - 'CMakeLists.txt'
   pull_request:
     branches: [ master ]
     paths: 
     - 'src/**'
     - 'myhtml/**'
+    - 'Makefile'
+    - 'CMakeLists.txt'
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
