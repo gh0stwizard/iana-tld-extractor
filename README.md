@@ -19,7 +19,7 @@ If you need just the result CSV file, see [this file][7].
 
 * [libcurl][2] (optionally)
 * [myhtml][3]
-* [idnkit][4]
+* [idnkit][4] or [libidn2][12]
 * [GNU make][6] to build
 
 
@@ -136,3 +136,4 @@ This software is licensed under "The 2-Clause BSD License".
 [9]: /README.git
 [10]: https://github.com/incognico/list-of-top-level-domains
 [11]: http://mxr.mozilla.org/mozilla-central/source/netwerk/dns/effective_tld_names.dat?raw=1
+[12]: https://gitlab.com/libidn/libidn2
