@@ -27,7 +27,7 @@ jobs:
       run: sudo apt-get install libcurl4-openssl-dev
       
     - name: Install libidn2-dev
-      run: sudo apt-get install libidn2 libidn2-dev
+      run: sudo apt-get install libidn2-0 libidn2-0-dev
 
     # Runs a single command using the runners shell
     - name: Checkout myhtml
