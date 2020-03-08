@@ -3,6 +3,7 @@
 *.swp
 *.htm
 *.html
+build/
 core
 iana-tld-extractor
 private/

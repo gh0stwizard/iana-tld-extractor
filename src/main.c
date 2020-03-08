@@ -439,7 +439,7 @@ main (int argc, char *argv[])
             return 2;
 #else
     if (strcmp (argv[1], "-d") == 0)
-        fprintf (stderr, "WARNING: no curl support");
+        fprintf (stderr, "WARNING: no curl support\n");
 #endif
 
     data = load_html_file (argv[argc - 1]);
