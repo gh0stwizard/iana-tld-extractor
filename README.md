@@ -38,6 +38,40 @@ If `idnkit` was installed to a different path, then use
 % make IDNKIT_DIR=/path/to/idnkit
 ```
 
+### CMake
+
+Update git submodule as show below first, if you did not this already.
+
+```
+% git submodule init
+% git submodule update --checkout
+```
+
+Build to `build` output directory with cmake:
+
+```
+% rm -rf build
+% cmake -S . -B build
+% cmake --build build/
+```
+
+Check the output binary and run it as show in next chapter.
+
+```
+% ldd build/iana-tld-extractor
+% ./build/iana-tld-extractor -d last.html > last.csv
+```
+
+### Build with libidn2
+
+At the moment only build via `CMake` is supported.
+
+```
+% rm -rf build
+% cmake -S . -B build -D WITH_IDN2=ON
+% cmake --build build/
+```
+
 
 ## Usage
 

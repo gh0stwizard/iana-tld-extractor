@@ -21,6 +21,7 @@ target_include_directories(iana-tld-extractor PUBLIC
 
 find_package(LibIDN2)
 if (LIBIDN2_FOUND AND WITH_IDN2)
+  add_definitions(-DHAVE_IDN2)
   include_directories(${LIBIDN2_INCLUDE_DIR})
   target_link_libraries(iana-tld-extractor PUBLIC ${LIBIDN2_LIBRARIES})
 else()

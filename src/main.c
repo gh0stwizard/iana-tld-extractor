@@ -10,7 +10,11 @@
 #include <time.h>
 #endif
 #include <myhtml/api.h>
+#ifdef HAVE_IDN2
+#include <idn2.h>
+#else
 #include <idn/api.h>
+#endif
 #include "utf8_decode.h"
 
 
@@ -22,7 +26,9 @@
 
 static myhtml_tree_t *tree;
 static myhtml_t *myhtml;
+#ifndef HAVE_IDN2
 static idn_resconf_t ctx;
+#endif
 
 
 struct res_html {
@@ -50,6 +56,7 @@ init_myhtml (void)
 }
 
 
+#ifndef HAVE_IDN2
 static void
 init_idn (idn_resconf_t *ctx)
 {
@@ -65,6 +72,7 @@ init_idn (idn_resconf_t *ctx)
     idn_resconf_setlocalencoding (*ctx, NULL);
     idn_resconf_setlocalcheckfile (*ctx, NULL);
 }
+#endif
 
 
 static void
@@ -154,6 +162,26 @@ sanitize_text (const char *text, size_t length, int skipdot)
 }
 
 
+#ifdef HAVE_IDN2
+static const char *
+encode_domain (const char *domain, size_t length)
+{
+    int rc;
+    char *result;
+
+    rc = idn2_lookup_ul (domain, &result, 0);
+    if (rc != IDN2_OK)
+    {
+        fprintf (stderr, "%s (%s, %d)\n",
+                 idn2_strerror (rc),
+                 idn2_strerror_name (rc),
+                 rc);
+        return NULL;
+    }
+
+    return result;
+}
+#else
 static const char *
 encode_domain (const char *domain, size_t length)
 {
@@ -172,7 +200,7 @@ encode_domain (const char *domain, size_t length)
 
     return result;
 }
-
+#endif
 
 static void
 parse_tld (myhtml_tree_node_t *parent)
@@ -209,7 +237,14 @@ parse_tld (myhtml_tree_node_t *parent)
             if (i == 0) {
                 /* domain */
                 const char *copy = sanitize_text (text, len, 1);
+#ifndef HAVE_IDN2
                 printf ("\"%s\",", encode_domain (copy, strlen (copy)));
+#else
+                char *punycode = encode_domain (copy, strlen (copy));
+                printf ("\"%s\",", punycode != NULL ? punycode : copy);
+                if (punycode != NULL)
+                    free (punycode);
+#endif
             }
             else {
                 /* type * sponsor */
@@ -421,12 +456,16 @@ main (int argc, char *argv[])
 
 
     setlocale (LC_ALL, "en_US.UTF-8");
+
 #ifdef HAVE_CURL
     init_curl ();
 #endif
-    init_myhtml ();
-    init_idn (&ctx);
 
+    init_myhtml ();
+
+#ifndef HAVE_IDN2
+    init_idn (&ctx);
+#endif
 
     if (argc < 2) {
         fprintf (stderr, "usage: %s [-d] HTML_FILE\n", argv[0]);
@@ -447,10 +486,15 @@ main (int argc, char *argv[])
     parse_html (tree);
     free (data.html);
 
+#ifndef HAVE_IDN2
     idn_resconf_destroy (ctx);
+#endif
+
     free_myhtml ();
+
 #ifdef HAVE_CURL
     free_curl ();
 #endif
+
     return 0;
 }
