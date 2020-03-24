@@ -1,6 +1,6 @@
 # This is a basic workflow to help you get started with Actions
 
-name: CI
+name: build
 
 # Controls when the action will run. Triggers the workflow on push or pull request 
 # events but only for the master branch
@@ -12,6 +12,7 @@ on:
     - 'myhtml/**'
     - 'Makefile'
     - 'CMakeLists.txt'
+    - '.github/**'
   pull_request:
     branches: [ master ]
     paths: 
@@ -19,6 +20,7 @@ on:
     - 'myhtml/**'
     - 'Makefile'
     - 'CMakeLists.txt'
+    - '.github/**'
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
