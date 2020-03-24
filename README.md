@@ -90,18 +90,31 @@ where you built `iana-tld-extractor`.
 ```
 % export LD_LIBRARY_PATH=myhtml/lib
 % ./iana-tld-extractor
-usage: ./iana-tld-extractor [-d] HTML_FILE
+Usage: iana-tld-extractor [OPTIONS] HTML_FILE
+Options:
+  --help, -h, -?               print this help
+  --download, -d               download from IANA site
+  --raw-domains, -r            print raw domains instead of punycode
 ```
 
 Where `-d` option to download a fresh copy of the HTML page
 from the IANA website and save that HTML data into
-specified `FILE`.
+specified `HTML_FILE`.
 
 To save the result CSV, please use pipe redirection to a file,
-as shown below.
+as shown below (without download).
 
 ```
-% ./iana-tld-extractor -d last.html > last_tld.csv
+% ./iana-tld-extractor last.html > last.csv
+```
+
+By default, `iana-tld-extractor` converts domain names to punycode.
+If you wish to save CSV file with raw domain names (as is), use
+`--raw-domains` option. The example below shows how to get latest
+list of the TLDs in raw format:
+
+```
+% ./iana-tld-extractor -d -r last.html > raw.csv
 ```
 
 

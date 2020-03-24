@@ -1,19 +1,20 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <getopt.h>
 #include <string.h>
 #include <errno.h>
 #include <assert.h>
 #include <limits.h>
 #include <locale.h>
 #ifdef HAVE_CURL
-#include <curl/curl.h>
-#include <time.h>
+    #include <curl/curl.h>
+    #include <time.h>
 #endif
 #include <myhtml/api.h>
 #ifdef HAVE_IDN2
-#include <idn2.h>
+    #include <idn2.h>
 #else
-#include <idn/api.h>
+    #include <idn/api.h>
 #endif
 #include "utf8_decode.h"
 
@@ -203,7 +204,7 @@ encode_domain (const char *domain, size_t length)
 #endif
 
 static void
-parse_tld (myhtml_tree_node_t *parent)
+parse_tld (myhtml_tree_node_t *parent, int raw)
 {
     myhtml_tree_node_t *node;
     myhtml_collection_t *td;
@@ -236,15 +237,22 @@ parse_tld (myhtml_tree_node_t *parent)
                 continue;
             if (i == 0) {
                 /* domain */
-                const char *copy = sanitize_text (text, len, 1);
+                const char *d = sanitize_text (text, len, 1);
+
+                if (raw == 1) {
+                    printf ("\"%s\",", d);
+                }
+                else {
+                    ssize_t dlen = strlen (d);
 #ifndef HAVE_IDN2
-                printf ("\"%s\",", encode_domain (copy, strlen (copy)));
+                    printf ("\"%s\",", encode_domain (d, dlen));
 #else
-                char *punycode = encode_domain (copy, strlen (copy));
-                printf ("\"%s\",", punycode != NULL ? punycode : copy);
-                if (punycode != NULL)
-                    free (punycode);
+                    char *puny = encode_domain (d, dlen);
+                    printf ("\"%s\",", puny != NULL ? puny : d);
+                    if (puny != NULL)
+                        free (puny);
 #endif
+                }
             }
             else {
                 /* type * sponsor */
@@ -264,7 +272,7 @@ done:
 
 
 static void
-parse_html (myhtml_tree_t *tree)
+parse_html (myhtml_tree_t *tree, int raw)
 {
     myhtml_collection_t *table, *tbody, *th, *tr;
     myhtml_tree_node_t *node;
@@ -297,7 +305,7 @@ parse_html (myhtml_tree_t *tree)
     assert (tr != NULL && tr->list != NULL && tr->length > 0);
 
     for (size_t i = 0; i < tr->length; i++)
-        parse_tld (tr->list[i]);
+        parse_tld (tr->list[i], raw);
 
     /*XXX segfault in mycore_free (still exists in 4.0.5) */
 //    myhtml_collection_destroy (tbody);
@@ -449,11 +457,70 @@ download (const char *url, const char *outfile)
 #endif
 
 
+typedef struct app_options_s {
+    int download;
+    int printraw;
+    const char *html_file;
+} app_options_t;
+
+
+static void
+print_usage()
+{
+    printf ("Usage: iana-tld-extractor [OPTIONS] HTML_FILE\n"
+            "Options:\n");
+#define p(o, d) printf ("  %-28s %s\n", (o), (d))
+    p("--help, -h, -?",     "print this help");
+    p("--download, -d",     "download from IANA site");
+    p("--raw-domains, -r",  "print raw domains instead of punycode");
+#undef p
+}
+
+
+static int
+parse_args (int argc, char *argv[], app_options_t *result)
+{
+    int r;
+    static struct option opts[] = {
+        { "help",        no_argument, 0, 'h' },
+        { "download",    no_argument, 0, 'd' },
+        { "raw-domains", no_argument, 0, 'r' },
+        { 0, 0, 0, 0 }
+    };
+
+    while (1) {
+        int index = 0;
+        r = getopt_long (argc, argv, "hdr", opts, &index);
+
+        if (r == -1)
+            break;
+
+        switch (r) {
+        case 0:     break;
+        case 'd':   result->download = 1; break;
+        case 'r':   result->printraw = 1; break;
+        case 'h':
+        case '?':   print_usage(); return 1;
+        default:    print_usage(); return 1;
+        }
+    }
+
+    if (optind >= argc) {
+        print_usage();
+        return 1;
+    }
+
+    result->html_file = argv[optind];
+
+    return 0;
+}
+
+
 extern int
 main (int argc, char *argv[])
 {
     struct res_html data;
-
+    app_options_t app_opts = { 0, 0, NULL };
 
     setlocale (LC_ALL, "en_US.UTF-8");
 
@@ -467,23 +534,21 @@ main (int argc, char *argv[])
     init_idn (&ctx);
 #endif
 
-    if (argc < 2) {
-        fprintf (stderr, "usage: %s [-d] HTML_FILE\n", argv[0]);
+    if (parse_args(argc, argv, &app_opts) != 0)
         return 1;
-    }
 
 #ifdef HAVE_CURL
-    if (strcmp (argv[1], "-d") == 0)
+    if (app_opts.download == 1)
         if (! download (ROOT_DB_URL, argv[argc - 1]))
             return 2;
 #else
-    if (strcmp (argv[1], "-d") == 0)
+    if (app_opts.download == 1)
         fprintf (stderr, "WARNING: no curl support\n");
 #endif
 
-    data = load_html_file (argv[argc - 1]);
+    data = load_html_file (app_opts.html_file);
     myhtml_parse (tree, MyENCODING_UTF_8, data.html, data.size);
-    parse_html (tree);
+    parse_html (tree, app_opts.printraw);
     free (data.html);
 
 #ifndef HAVE_IDN2
