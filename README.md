@@ -7,7 +7,7 @@
 This is a small utility derives data from HTML and print out
 the result in [CSV][5] format.
 
-If you need just the result CSV file, see [this file][7].
+If you need just the result CSV file, see [tld.csv][7] or [raw.csv][13].
 
 
 ## Features
@@ -120,7 +120,8 @@ list of the TLDs in raw format:
 
 ## Results
 
-You may find out the latest parsed CSV file in this repository: [tld.csv][7].
+* Punycode: [tld.csv][7]
+* Raw (as is): [raw.csv][13]
 
 
 ## SEE ALSO
@@ -151,3 +152,4 @@ This software is licensed under "The 2-Clause BSD License".
 [10]: https://github.com/incognico/list-of-top-level-domains
 [11]: http://mxr.mozilla.org/mozilla-central/source/netwerk/dns/effective_tld_names.dat?raw=1
 [12]: https://gitlab.com/libidn/libidn2
+[13]: /raw.csv
