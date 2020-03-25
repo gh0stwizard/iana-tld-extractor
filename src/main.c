@@ -81,8 +81,11 @@ free_myhtml (void)
 {
     if (tree)
         myhtml_tree_destroy(tree);
+
+#ifndef __NetBSD__ /* FIXME */
     if (myhtml)
         myhtml_destroy(myhtml);
+#endif
 }
 
 
@@ -260,7 +263,6 @@ parse_tld (myhtml_tree_node_t *parent, int raw)
                 printf ("\"%s\"%s", copy, (i == td->length - 1) ? "" : ",");
             }
         }
-
         myhtml_collection_destroy (txt);
     }
 
@@ -443,6 +445,11 @@ download (const char *url, const char *outfile)
 
             assert (fseek (fh, 0L, SEEK_SET) != 0);
             (void) nanosleep (&retry_ts, NULL);
+        }
+        else
+        {
+            /* unknown error */
+            break;
         }
     } while (code != CURLE_OK);
 
