@@ -94,7 +94,7 @@ sanitize_text (const char *text, size_t length, int skipdot)
 {
 #define TEXT_SIZE 2048
 
-    int c1, c2;         /* characters */
+    int c1 = 0, c2 = 0; /* characters */
     int p1 = 0, p2 = 0; /* byte position of characters */
     int pos = 0;        /* position in sanitized array */
     static char sanitized[TEXT_SIZE];
@@ -163,6 +163,7 @@ sanitize_text (const char *text, size_t length, int skipdot)
     sanitized[pos] = '\0';
 
     return sanitized;
+#undef SKIP
 }
 
 
@@ -478,7 +479,9 @@ print_usage()
             "Options:\n");
 #define p(o, d) printf ("  %-28s %s\n", (o), (d))
     p("--help, -h, -?",     "print this help");
+#ifdef HAVE_CURL
     p("--download, -d",     "download from IANA site");
+#endif
     p("--raw-domains, -r",  "print raw domains instead of punycode");
 #undef p
 }
@@ -490,7 +493,9 @@ parse_args (int argc, char *argv[], app_options_t *result)
     int r;
     static struct option opts[] = {
         { "help",        no_argument, 0, 'h' },
+#ifdef HAVE_CURL
         { "download",    no_argument, 0, 'd' },
+#endif
         { "raw-domains", no_argument, 0, 'r' },
         { 0, 0, 0, 0 }
     };
@@ -504,7 +509,9 @@ parse_args (int argc, char *argv[], app_options_t *result)
 
         switch (r) {
         case 0:     break;
+#ifdef HAVE_CURL
         case 'd':   result->download = 1; break;
+#endif
         case 'r':   result->printraw = 1; break;
         case 'h':
         case '?':   print_usage(); return 1;
