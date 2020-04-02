@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.0)
 project(iana-tld-extractor C)
 
 option(WITH_IDN2 "Build with libidn2" OFF)
+option(WITH_CURL "Build with libcurl" ON)
 
 set(CMAKE_C_STANDARD 99)
 set(PROJECT_INSTALL_DLL_EXE_DIR "bin")
@@ -21,7 +22,7 @@ target_include_directories(iana-tld-extractor PUBLIC
   )
 
 find_package(LibIDN2)
-if (LIBIDN2_FOUND AND WITH_IDN2)
+if (WITH_IDN2 AND LIBIDN2_FOUND)
   add_definitions(-DHAVE_IDN2)
   include_directories(${LIBIDN2_INCLUDE_DIR})
   target_link_libraries(iana-tld-extractor PUBLIC ${LIBIDN2_LIBRARIES})
@@ -36,7 +37,7 @@ else()
 endif()
 
 find_package(CURL)
-if (CURL_FOUND)
+if (WITH_CURL AND CURL_FOUND)
   add_definitions(-DHAVE_CURL)
   include_directories(${CURL_INCLUDE_DIRS})
   target_link_libraries(iana-tld-extractor PUBLIC ${CURL_LIBRARIES})

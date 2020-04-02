@@ -58,7 +58,7 @@ If `idnkit` was installed to a different path, then use
 
 ### Build with libidn2
 
-Use the option `FORCE_IDN2=idn2` to build the application:
+Use the option `FORCE_IDN=idn2` to build the application:
 
 ```
 % make FORCE_IDN=idn2
@@ -103,6 +103,13 @@ To build with cmake 3.0x:
 % cd build
 % cmake -D WITH_IDN2=ON ..
 % make
+```
+
+To build without `libcurl` support use the option `WITH_CURL=OFF`,
+for instance:
+
+```
+% cmake -D WITH_CURL=OFF ..
 ```
 
 
