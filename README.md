@@ -19,7 +19,7 @@ If you need just the result CSV file, see [tld.csv][7] or [raw.csv][13].
 ## Dependencies
 
 * [libcurl][2] (optionally)
-* [myhtml][3] (included, see [README.git][15] for details)
+* [myhtml][3] (included, see [README.git][9] for details)
 * [idnkit][4] or [libidn2][12]
 * [GNU make][6] or [cmake][14]
 * pkg-config
