@@ -33,7 +33,7 @@ endif
 
 MYHTML_CFLAGS = -Imyhtml/include
 MYHTML_LIBS = -Lmyhtml/lib -lmyhtml
-MYHTML_LIBS_STATIC = $(MYHTML_LIBS)_static
+MYHTML_LIBS_STATIC = $(MYHTML_LIBS)_static -lpthread
 
 TARGET = iana-tld-extractor
 SOURCES = $(wildcard src/*.c)
@@ -45,17 +45,17 @@ CPPFLAGS += $(DEFS) $(INCLUDES)
 
 #----------------------------------------------------------#
 
-all: myhtml $(TARGET)
+all: $(TARGET)
 
 debug: CFLAGS += -g -D_DEBUG
 debug: all
 
-$(TARGET): $(OBJECTS)
+$(TARGET): myhtml $(OBJECTS)
 	# shared linkage
 	$(CC) $(LDFLAGS) -o $@ $(OBJECTS) \
 	$(LIBS) $(MYHTML_LIBS) $(CURL_LIBS)
 
-static: $(OBJECTS)
+static: myhtml $(OBJECTS)
 	# static linkage
 	$(CC) -static $(LDFLAGS) -o $(TARGET) $(OBJECTS) \
 	$(LIBS_STATIC) $(MYHTML_LIBS_STATIC) $(CURL_LIBS_STATIC)
@@ -73,9 +73,14 @@ strip: $(TARGET)
 	# strip
 	strip --strip-unneeded -R .comment -R .note -R .note.ABI-tag $(TARGET)
 
+strip-static: static
+	# strip (static)
+	strip --strip-unneeded -R .comment -R .note -R .note.ABI-tag $(TARGET)
+
 myhtml:
-	# myhtml-library
-	$(MAKE) -C myhtml library
+	# myhtml
+	# XXX build with target `library` produce bad myhtml_static.a archive
+	$(MAKE) -C myhtml
 
 myhtml-clean:
 	# myhtml-clean
