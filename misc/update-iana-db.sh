@@ -16,9 +16,6 @@ LOG="logger -s update-iana-db.sh: "
 CURL=`which curl`
 WGET=`which wget`
 
-cd "${SRCDIR}" || exit 1
-export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:myhtml/lib
-
 
 download() {
 	if [ -n "${CURL}" ]; then
@@ -29,7 +26,16 @@ download() {
 		$LOG "ERROR: neither curl or wget has installed."
 		exit 1
 	fi
+
+	if [ ! -s ${HTML_FILE} ]; then
+		$LOG "ERROR: ${HTML_FILE} is empty!"
+		exit 1
+	fi
 }
+
+
+cd "${SRCDIR}" || exit 1
+export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${SRCDIR}/myhtml/lib"
 
 
 if [ -x ${APP} ]; then
