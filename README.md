@@ -74,10 +74,22 @@ Check the output binary and run it as show in next chapter.
 
 At the moment only build via `CMake` is supported.
 
+To build with cmake 3.10+:
+
 ```
 % rm -rf build
 % cmake -S . -B build -D WITH_IDN2=ON
 % cmake --build build/
+```
+
+To build with cmake 3.00:
+
+```
+% rm -rf build
+% mkdir build
+% cd build
+% cmake -D WITH_IDN2=ON ..
+% make
 ```
 
 
