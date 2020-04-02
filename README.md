@@ -13,66 +13,79 @@ If you need just the result CSV file, see [tld.csv][7] or [raw.csv][13].
 ## Features
 
 * Converts IDN domains to Punycode
-* Save result to a CSV file
+* Saves the result to a CSV file in raw & punycode formats
 
 
 ## Dependencies
 
 * [libcurl][2] (optionally)
-* [myhtml][3]
+* [myhtml][3] (included, see [README.git][15] for details)
 * [idnkit][4] or [libidn2][12]
-* [GNU make][6] to build
+* [GNU make][6] or [cmake][14]
+* pkg-config
 
 
 ## Build
+
+Before building the application, please, prepare `myhtml`
+git submodule, see [README.git][9] file for details.
+After that build the tool.
+
+```
+% git submodule init
+% git submodule update --checkout
+```
+
+By default the `Makefile` assumes that you are building
+the application with `idnkit`. See sections below to change
+the behavior.
+
+
+### Build with idnkit
 
 Before building the tool, install the [idnkit][4] library.
 By default `iana-tld-extractor` expects that `idnkit` was
 installed to `/usr/local`.
 
-Then prepare `myhtml` git submodule, see [README.git][9] file
-for details. After that build the tool.
-
-```
-% git submodule init
-% git submodule update --checkout
-% make
-```
-
 If `idnkit` was installed to a different path, then use
 `IDNKIT_DIR` variable as shown below.
+
 
 ```
 % make IDNKIT_DIR=/path/to/idnkit
 ```
 
-### CMake
-
-Update git submodule as show below first, if you did not this already.
-
-```
-% git submodule init
-% git submodule update --checkout
-```
-
-Build to `build` output directory with cmake:
-
-```
-% rm -rf build
-% cmake -S . -B build
-% cmake --build build/
-```
-
-Check the output binary and run it as show in next chapter.
-
-```
-% ldd build/iana-tld-extractor
-% ./build/iana-tld-extractor -d last.html > last.csv
-```
 
 ### Build with libidn2
 
-At the moment only build via `CMake` is supported.
+Use the option `FORCE_IDN2=idn2` to build the application:
+
+```
+% make FORCE_IDN=idn2
+```
+
+In the case when there is no `libidn2.pc` file on your system
+(Debian 8, for instance), you may do the next thing:
+
+```
+% make FORCE_IDN=idn2 DEFS="-I/usr/include" LIBS="-lidn2"
+```
+
+
+### Build without libcurl
+
+Pass `WITH_CURL=NO` to `make`:
+
+```
+% make WITH_CURL=NO
+```
+
+
+### Build using cmake
+
+Update git submodule as show above first, if you did not this already.
+If you need to build the application with `libidn2` pass `WITH_IDN2=ON`
+to `cmake` as show below.
 
 To build with cmake 3.10+:
 
@@ -82,7 +95,7 @@ To build with cmake 3.10+:
 % cmake --build build/
 ```
 
-To build with cmake 3.00:
+To build with cmake 3.0x:
 
 ```
 % rm -rf build
@@ -165,3 +178,4 @@ This software is licensed under "The 2-Clause BSD License".
 [11]: http://mxr.mozilla.org/mozilla-central/source/netwerk/dns/effective_tld_names.dat?raw=1
 [12]: https://gitlab.com/libidn/libidn2
 [13]: /raw.csv
+[14]: https://cmake.org/
