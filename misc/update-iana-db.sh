@@ -19,7 +19,7 @@ WGET=`which wget`
 
 download() {
 	if [ -n "${CURL}" ]; then
-		${CURL} -s -o ${HTML_FILE} -L ${IANA_URL} || exit 1
+		${CURL} -S -s -f -o ${HTML_FILE} -L ${IANA_URL} || exit 1
 	elif [ -n "${WGET}" ]; then
 		${WGET} -q -O ${HTML_FILE} ${IANA_URL} || exit 1
 	else
