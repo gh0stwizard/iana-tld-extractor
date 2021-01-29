@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0)
-project(iana-tld-extractor C)
+project(iana-tld-extractor VERSION 1.0.0 LANGUAGES C)
 
 option(WITH_IDN2 "Build with libidn2" OFF)
 option(WITH_CURL "Build with libcurl" ON)
@@ -9,6 +9,7 @@ set(PROJECT_INSTALL_DLL_EXE_DIR "bin")
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 add_definitions(-O2 -std=c99 -pedantic -D_GNU_SOURCE)
 add_definitions(-Wall -Wextra)
+add_definitions(-DAPP_VERSION=${CMAKE_PROJECT_VERSION})
 
 set(IDNKIT_DIR "/usr/local" CACHE STRING "Path where idnkit was installed")
 
