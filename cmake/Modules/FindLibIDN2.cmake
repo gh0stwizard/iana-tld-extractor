@@ -1,7 +1,7 @@
 # - Try to find LibIDN2
 # Once done this will define
-#  LIBIDN2_FOUND - System has LibXml2
-#  LIBIDN2_INCLUDE_DIR - The LibXml2 include directories
+#  LIBIDN2_FOUND - System has LibIDN2
+#  LIBIDN2_INCLUDE_DIR - The LibIDN2 include directories
 #  LIBIDN2_LIBRARIES - The libraries needed to use LibIDN2
 #  LIBIDN2_DEFINITIONS - Compiler switches required for using LibIDN2
 
