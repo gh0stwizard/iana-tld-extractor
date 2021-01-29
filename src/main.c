@@ -19,6 +19,11 @@
 #include "utf8_decode.h"
 
 
+/* to print app version */
+#define _STR(x) #x
+#define STR(x) _STR(x)
+
+
 #define ARRAY_SIZE(a) (sizeof(a)/sizeof(a[0]))
 #ifndef PAGE_SIZE
 #define PAGE_SIZE 4096
@@ -164,6 +169,7 @@ sanitize_text (const char *text, size_t length, int skipdot)
 
     return sanitized;
 #undef SKIP
+#undef TEXT_SIZE
 }
 
 
@@ -204,6 +210,7 @@ encode_domain (const char *domain, size_t length)
     }
 
     return result;
+#undef DOMAIN_SIZE
 }
 #endif
 
@@ -483,12 +490,20 @@ print_usage()
     printf ("Usage: iana-tld-extractor [OPTIONS] HTML_FILE\n"
             "Options:\n");
 #define p(o, d) printf ("  %-28s %s\n", (o), (d))
-    p("--help, -h, -?",     "print this help");
+    p("--help, -h",         "print this help");
 #ifdef HAVE_CURL
     p("--download, -d",     "download from IANA site");
 #endif
     p("--raw-domains, -r",  "print raw domains instead of punycode");
+    p("--version, -v",      "print version");
 #undef p
+}
+
+
+static void
+print_version()
+{
+    printf("v%s\n", STR(APP_VERSION));
 }
 
 
@@ -502,12 +517,17 @@ parse_args (int argc, char *argv[], app_options_t *result)
         { "download",    no_argument, 0, 'd' },
 #endif
         { "raw-domains", no_argument, 0, 'r' },
+        { "version",     no_argument, 0, 'v' },
         { 0, 0, 0, 0 }
     };
 
     while (1) {
         int index = 0;
-        r = getopt_long (argc, argv, "hdr", opts, &index);
+#ifdef HAVE_CURL
+        r = getopt_long (argc, argv, "hdrv", opts, &index);
+#else
+        r = getopt_long (argc, argv, "hrv", opts, &index);
+#endif
 
         if (r == -1)
             break;
@@ -518,8 +538,8 @@ parse_args (int argc, char *argv[], app_options_t *result)
         case 'd':   result->download = 1; break;
 #endif
         case 'r':   result->printraw = 1; break;
-        case 'h':
-        case '?':   print_usage(); return 1;
+        case 'h':   print_usage(); return 0;
+        case 'v':   print_version(); return 0;
         default:    print_usage(); return 1;
         }
     }
@@ -531,7 +551,7 @@ parse_args (int argc, char *argv[], app_options_t *result)
 
     result->html_file = argv[optind];
 
-    return 0;
+    return -1;
 }
 
 
@@ -543,6 +563,10 @@ main (int argc, char *argv[])
 
     setlocale (LC_ALL, "en_US.UTF-8");
 
+    int parse_args_rv = parse_args(argc, argv, &app_opts);
+    if (parse_args_rv != -1)
+        return parse_args_rv;
+
 #ifdef HAVE_CURL
     init_curl ();
 #endif
@@ -553,16 +577,10 @@ main (int argc, char *argv[])
     init_idn (&ctx);
 #endif
 
-    if (parse_args(argc, argv, &app_opts) != 0)
-        return 1;
-
 #ifdef HAVE_CURL
     if (app_opts.download == 1)
         if (! download (ROOT_DB_URL, argv[argc - 1]))
             return 2;
-#else
-    if (app_opts.download == 1)
-        fprintf (stderr, "WARNING: no curl support\n");
 #endif
 
     data = load_html_file (app_opts.html_file);
