@@ -35,6 +35,12 @@ LIBS_STATIC ?= $(shell $(PKG_CONFIG) --static --libs libidn2)
 else
 $(error Incorrect FORCE_IDN option. Valid values are: idnkit, idn2.)
 endif
+else
+# use idnkit by default
+IDNKIT_DIR ?= /usr/local
+DEFS ?= -I$(IDNKIT_DIR)/include
+LIBS ?= -L$(IDNKIT_DIR)/lib -lidnkit
+LIBS_STATIC ?= -L$(IDNKIT_DIR)/lib -lidnkit
 endif
 
 MYHTML_CFLAGS = -Imyhtml/include
