@@ -503,7 +503,17 @@ print_usage()
 static void
 print_version()
 {
-    printf("v%s\n", STR(APP_VERSION));
+    const char futures[] = {
+#ifdef HAVE_CURL
+    " +curl"
+#endif
+#ifdef HAVE_IDN2
+    " +idn2"
+#else
+    " +idnkit"
+#endif
+    };
+    printf("v%s%s\n", STR(APP_VERSION), futures);
 }
 
 
