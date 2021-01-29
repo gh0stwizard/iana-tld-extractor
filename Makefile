@@ -2,6 +2,7 @@ CFLAGS ?= -O2
 PKG_CONFIG ?= pkg-config
 RM ?= rm -f
 WITH_CURL ?= YES
+IDNKIT_DIR ?= /usr/local
 
 CPPFLAGS = -Wall -std=c99 -pedantic -D_POSIX_C_SOURCE=200809L -D_GNU_SOURCE
 CPPFLAGS += -Imyhtml/include
@@ -22,7 +23,6 @@ endif
 ifdef FORCE_IDN
 ifeq ($(FORCE_IDN),idnkit)
 # idnkit
-IDNKIT_DIR ?= /usr/local
 DEFS ?= -I$(IDNKIT_DIR)/include
 LIBS ?= -L$(IDNKIT_DIR)/lib -lidnkit
 LIBS_STATIC ?= -L$(IDNKIT_DIR)/lib -lidnkit
@@ -37,7 +37,6 @@ $(error Incorrect FORCE_IDN option. Valid values are: idnkit, idn2.)
 endif
 else
 # use idnkit by default
-IDNKIT_DIR ?= /usr/local
 DEFS ?= -I$(IDNKIT_DIR)/include
 LIBS ?= -L$(IDNKIT_DIR)/lib -lidnkit
 LIBS_STATIC ?= -L$(IDNKIT_DIR)/lib -lidnkit
