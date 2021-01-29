@@ -4,16 +4,17 @@
 
 ## Description
 
-This is a small utility derives data from HTML and print out
-the result in [CSV][5] format.
+This is a small utility derives data from [IANA Root Zone Database][1]
+and prints out the result to a file in [CSV][5] format.
 
-If you need just the result CSV file, see [tld.csv][7] or [raw.csv][13].
+If you need just the result CSV file, see [tld.csv][7] (punycode version)
+or [raw.csv][13] ("as is" version).
 
 
 ## Features
 
 * Converts IDN domains to Punycode
-* Saves the result to a CSV file in raw & punycode formats
+* Saves the result to a CSV file in raw (as is) & punycode formats
 
 
 ## Dependencies
@@ -115,7 +116,8 @@ for instance:
 
 ## Usage
 
-Ensure that LD_LIBRARY_PATH contains path to `libmyhtml.so`.
+Ensure that LD_LIBRARY_PATH contains path to `libmyhtml.so`
+and to `libidnkit.so` when the application built with `idnkit`.
 The example below expecting that you are in the same dir,
 where you built `iana-tld-extractor`.
 
@@ -124,26 +126,27 @@ where you built `iana-tld-extractor`.
 % ./iana-tld-extractor
 Usage: iana-tld-extractor [OPTIONS] HTML_FILE
 Options:
-  --help, -h, -?               print this help
+  --help, -h                   print this help
   --download, -d               download from IANA site
   --raw-domains, -r            print raw domains instead of punycode
+  --version, -v                print version
 ```
 
 Where `-d` option to download a fresh copy of the HTML page
 from the IANA website and save that HTML data into
-specified `HTML_FILE`.
+the specified `HTML_FILE`.
 
-To save the result CSV, please use pipe redirection to a file,
-as shown below (without download).
+To save the result to a CSV file, please use pipe redirection
+to the file, as shown below (without download).
 
 ```
 % ./iana-tld-extractor last.html > last.csv
 ```
 
 By default, `iana-tld-extractor` converts domain names to punycode.
-If you wish to save CSV file with raw domain names (as is), use
-`--raw-domains` option. The example below shows how to get latest
-list of the TLDs in raw format:
+If you wish to save a CSV file with raw domain names ("as is"), use
+the `--raw-domains` option. The example below shows you how to get
+the latest list of the TLDs in the raw format:
 
 ```
 % ./iana-tld-extractor -d -r last.html > raw.csv
