@@ -251,10 +251,15 @@ parse_tld (myhtml_tree_node_t *parent, int raw)
 #ifndef HAVE_IDN2
                     printf ("\"%s\",", encode_domain (d, dlen));
 #else
-                    char *puny = encode_domain (d, dlen);
-                    printf ("\"%s\",", puny != NULL ? puny : d);
-                    if (puny != NULL)
-                        free (puny);
+                    const char *puny = encode_domain (d, dlen);
+                    if (puny != NULL) {
+                        printf ("\"%s\",", puny);
+                        free ((void *)puny);
+                    }
+                    else {
+                        /* ascii domain as is */
+                        printf ("\"%s\",", d);
+                    }
 #endif
                 }
             }
