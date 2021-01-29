@@ -159,7 +159,7 @@ sanitize_text (const char *text, size_t length, int skipdot)
         }
         else {
             /* it possible that we read everything; does not work always. */
-            /* at p1, length: len - p2 */
+            /* at p1, length: len - p1 */
             SKIP(c1, p1, length - p1);
         }
     }

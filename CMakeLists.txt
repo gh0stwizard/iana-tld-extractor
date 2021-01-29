@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0)
-project(iana-tld-extractor VERSION 1.0.0 LANGUAGES C)
+project(iana-tld-extractor VERSION 1.0.1 LANGUAGES C)
 
 option(WITH_IDN2 "Build with libidn2" OFF)
 option(WITH_CURL "Build with libcurl" ON)
