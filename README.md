@@ -38,11 +38,29 @@ After that build the tool.
 ```
 
 By default the `Makefile` assumes that you are building
-the application with `idnkit`. See sections below to change
+the application with `libidn2`. See sections below to change
 the behavior.
+
+It would be helpful to check the options before building
+the application:
+
+```
+% make help
+WITH_CURL = YES|NO - build with curl, default: YES
+FORCE_IDN = idnkit|idn2 - build with idnkit or libidn2, default: idn2
+WITH_STATIC_MYHTML = YES|NO - build statically myhtml, default: YES
+IDNKIT_DIR = /path/to/idnkit - idnkit install path, default: /usr/local
+make: 'help' is up to date.
+```
 
 
 ### Build with idnkit
+
+Use the option `FORCE_IDN=idnkit` to build the application:
+
+```
+% make FORCE_IDN=idnkit
+```
 
 Before building the tool, install the [idnkit][4] library.
 By default `iana-tld-extractor` expects that `idnkit` was
@@ -51,9 +69,8 @@ installed to `/usr/local`.
 If `idnkit` was installed to a different path, then use
 `IDNKIT_DIR` variable as shown below.
 
-
 ```
-% make IDNKIT_DIR=/path/to/idnkit
+% make FORCE_IDN=idnkit IDNKIT_DIR=/path/to/idnkit
 ```
 
 
@@ -114,12 +131,48 @@ for instance:
 ```
 
 
+### Static build
+
+Depending on your operating system it might be impossible to
+build the application completely statically.
+
+Common workaround is to avoid building with `libcurl`
+(use targets `static` or `strip-static`):
+
+```
+% make WITH_CURL=NO clean strip-static
+```
+
+On most distributives `curl` is built with many dependencies,
+some of them may be provided without static library files.
+
+Another issue raise up when building with `libidn2`, because
+of its dependency on `libunistring`, which may be built
+by maintainers of your distributive without providing
+`libunistring.a`. In that case you have to either rebuild
+`libunistring` yourself or install corresponding package
+with included `libunistring.a` file. Or you can build
+the application with `idnkit`:
+
+```
+% make WITH_CURL=NO FORCE_IDN=idnkit IDNKIT_DIR=$HOME/local clean strip-static
+```
+
+See also [update-iana-db.sh](/misc/update-iana-db.sh) script,
+which uses `curl` and `wget` utilities to do the job, when
+the application is built without `libcurl` support.
+
+
 ## Usage
 
 Ensure that LD_LIBRARY_PATH contains path to `libmyhtml.so`
 and to `libidnkit.so` when the application built with `idnkit`.
 The example below expecting that you are in the same dir,
 where you built `iana-tld-extractor`.
+
+Note: at the moment the application is linking with `myhtml`
+statically. See the option `WITH_STATIC_MYHTML` in
+[Makefile](/Makefile) for details.
 
 ```
 % export LD_LIBRARY_PATH=myhtml/lib
@@ -159,7 +212,7 @@ the latest list of the TLDs in the raw format:
 * Raw (as is): [raw.csv][13]
 
 
-## SEE ALSO
+## See also
 
 * [github:incognico/list-of-top-level-domains][10]
 * [Mozilla effective tld names][11]

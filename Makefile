@@ -1,8 +1,10 @@
 CFLAGS ?= -O2
 PKG_CONFIG ?= pkg-config
 RM ?= rm -f
-WITH_CURL ?= YES
 IDNKIT_DIR ?= /usr/local
+WITH_CURL ?= YES
+FORCE_IDN ?= idn2
+WITH_STATIC_MYHTML ?= YES
 
 CPPFLAGS = -Wall -std=c99 -pedantic -D_POSIX_C_SOURCE=200809L -D_GNU_SOURCE
 CPPFLAGS += -Imyhtml/include
@@ -11,7 +13,8 @@ MAJOR_VERSION = 1
 MINOR_VERSION = 0
 PATCH_VERSION = 1
 VERSION = $(MAJOR_VERSION).$(MINOR_VERSION).$(PATCH_VERSION)
-CPPFLAGS += -DAPP_VERSION=$(VERSION)
+
+#----------------------------------------------------------#
 
 ifeq ($(WITH_CURL),YES)
 CPPFLAGS += -DHAVE_CURL
@@ -44,7 +47,10 @@ endif
 
 MYHTML_CFLAGS = -Imyhtml/include
 MYHTML_LIBS = -Lmyhtml/lib -lmyhtml
-MYHTML_LIBS_STATIC = $(MYHTML_LIBS)_static -lpthread
+ifeq ($(WITH_STATIC_MYHTML),YES)
+MYHTML_LIBS = -Wl,-Bstatic -Lmyhtml/lib -lmyhtml_static -Wl,-Bdynamic -lpthread
+endif
+MYHTML_LIBS_STATIC = -Lmyhtml/lib -lmyhtml_static
 
 TARGET = iana-tld-extractor
 SOURCES = $(wildcard src/*.c)
@@ -52,7 +58,7 @@ OBJECTS = $(patsubst %.c, %.o, $(SOURCES))
 
 #----------------------------------------------------------#
 
-CPPFLAGS += $(DEFS) $(INCLUDES)
+CPPFLAGS += $(DEFS) $(INCLUDES) -DAPP_VERSION=$(VERSION)
 
 #----------------------------------------------------------#
 
@@ -98,4 +104,12 @@ myhtml-clean:
 	$(MAKE) -C myhtml clean
 	$(RM) myhtml/myhtml.pc
 
+help:
+	$(info Options:)
+	$(info WITH_CURL = YES|NO - build with curl, default: YES)
+	$(info FORCE_IDN = idnkit|idn2 - build with idnkit or libidn2, default: idn2)
+	$(info WITH_STATIC_MYHTML = YES|NO - build statically myhtml, default: YES)
+	$(info IDNKIT_DIR = /path/to/idnkit - idnkit install path, default: /usr/local)
+
+.SILENT: help
 .PHONY: all distclean clean debug strip myhtml
