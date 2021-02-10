@@ -12,7 +12,10 @@ APP=$(realpath ${SRCDIR}/iana-tld-extractor)
 #APP=$(realpath ${SRCDIR}/build/iana-tld-extractor)
 HTML_FILE="last.html"
 IANA_URL="https://www.iana.org/domains/root/db"
-LOG="logger -s update-iana-db.sh: "
+# log to syslog only
+LOG="logger update-iana-db.sh: "
+# log to syslog and print to stderr (used in conjunction with cron)
+SAY="logger -s update-iana-db.sh: "
 CURL=`which curl`
 WGET=`which wget`
 
@@ -23,12 +26,12 @@ download() {
 	elif [ -n "${WGET}" ]; then
 		${WGET} -q -O ${HTML_FILE} ${IANA_URL} || exit 1
 	else
-		$LOG "ERROR: neither curl or wget has installed."
+		$SAY "ERROR: neither curl or wget has installed."
 		exit 1
 	fi
 
-	if [ ! -s ${HTML_FILE} ]; then
-		$LOG "ERROR: ${HTML_FILE} is empty!"
+	if [ ! -s "${HTML_FILE}" ]; then
+		$SAY "ERROR: ${HTML_FILE} is empty!"
 		exit 1
 	fi
 }
@@ -38,14 +41,14 @@ cd "${SRCDIR}" || exit 1
 export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${SRCDIR}/myhtml/lib"
 
 
-if [ -x ${APP} ]; then
-	git pull || exit 1
+if [ -x "${APP}" ]; then
+	git pull --quiet || exit 1
 	download
 	# update CSV files
 	${APP} ${HTML_FILE} > tld.csv
 	${APP} -r ${HTML_FILE} > raw.csv
 else
-	$LOG "${APP} does not exist or is not executable"
+	$SAY "ERROR: ${APP} does not exist or is not executable"
 	exit 1
 fi
 
@@ -60,7 +63,7 @@ if [ -s "tld.csv" ] && [ -s "raw.csv" ]; then
 	git commit -m "update database ${datetime}"
 	git push || exit 1
 else
-	$LOG "ERROR: tld.csv and raw.csv files are empty!"
+	$SAY "ERROR: tld.csv and raw.csv files are empty!"
 	git checkout tld.csv raw.csv
 	exit 1
 fi
