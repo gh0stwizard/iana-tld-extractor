@@ -15,8 +15,9 @@ set(IDNKIT_DIR "/usr/local" CACHE STRING "Path where idnkit was installed")
 
 file(GLOB_RECURSE sources src/*.c src/*.h)
 add_subdirectory(myhtml)
+set_target_properties(myhtml_static PROPERTIES IMPORTED_LOCATION myhtml/lib/myhtml_static.a)
 add_executable(iana-tld-extractor ${sources})
-target_link_libraries(iana-tld-extractor PUBLIC ${MYHTML_LIBRARIES})
+target_link_libraries(iana-tld-extractor PUBLIC myhtml_static)
 target_include_directories(iana-tld-extractor PUBLIC
   "${PROJECT_BINARY_DIR}"
   "${MYHTML_INCLUDE_DIRS}"
