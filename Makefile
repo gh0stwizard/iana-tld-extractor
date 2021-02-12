@@ -5,6 +5,7 @@ IDNKIT_DIR ?= /usr/local
 WITH_CURL ?= YES
 FORCE_IDN ?= idn2
 WITH_STATIC_MYHTML ?= YES
+PATCH ?= patch
 
 CPPFLAGS = -Wall -std=c99 -pedantic -D_POSIX_C_SOURCE=200809L -D_GNU_SOURCE
 CPPFLAGS += -Imyhtml/include
@@ -98,6 +99,32 @@ myhtml:
 	# myhtml
 	# XXX build with target `library` produce bad myhtml_static.a archive
 	$(MAKE) -C myhtml
+
+# The bug was found on CentOS 6 with
+# % ar V
+# GNU ar version 2.20.51.0.2-5.48.el6_10.1 20100205
+# [...]
+#
+# The case is when "ar crus" updating .a file, you see next:
+# 1) at first call "make -C myhtml":
+# % nm myhtml/lib/libmyhtml_static.a | grep mycore_string_realloc
+# 0000000000000230 T mycore_string_realloc
+#                  U mycore_string_realloc
+#                  U mycore_string_realloc
+#                  U mycore_string_realloc
+#
+# 2) at second call "make -C myhtml" the output would be:
+# % nm myhtml/lib/libmyhtml_static.a | grep mycore_string_realloc
+#                  U mycore_string_realloc
+#                  U mycore_string_realloc
+#                  U mycore_string_realloc
+#                  U mycore_string_realloc
+#
+# Note that the text section (T mycore_string_realloc) is missing now.
+# We forbid updating the archive with "u" option as a workaround.
+# The new command will be "ar crs", instead of "ar crus".
+myhtml-fix-ar:
+	$(PATCH) -N -r - -p1 myhtml/Makefile misc/myhtml_gnu_ar.diff
 
 myhtml-clean:
 	# myhtml-clean

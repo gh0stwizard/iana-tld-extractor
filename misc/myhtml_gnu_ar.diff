@@ -1,0 +1,13 @@
+diff --git a/Makefile b/Makefile
+index 43368ff..03bdc80 100644
+--- a/Makefile
++++ b/Makefile
+@@ -96,7 +96,7 @@ override LDFLAGS += $(MODEST_LDFLAGS)
+ # Objects
+ #***************
+ MODEST_BUILD_OBJECT_SHARED  ?= $(CC) -shared $(LDFLAGS) $(MODEST_LDFLAGS) $1 -o $2
+-MODEST_BUILD_OBJECT_STATIC  ?= $(AR) crus $2 $1
++MODEST_BUILD_OBJECT_STATIC  ?= $(AR) crs $2 $1
+ MODEST_BUILD_OBJECT_MODULES := $(foreach dir,$(MODEST_BUILD_MODULES_TARGET),$($(dir)_objs))
+ MODEST_BUILD_OBJECT_MODULES := $(foreach dir,$(MODEST_BUILD_MODULES_TARGET),$($(dir)_objs))
+ 
