@@ -1,6 +1,6 @@
 # iana-tld-extractor -- [IANA Root Zone Database][1] extractor
 
-![build](https://github.com/gh0stwizard/iana-tld-extractor/workflows/build/badge.svg)
+[![build](https://github.com/gh0stwizard/iana-tld-extractor/actions/workflows/main.yml/badge.svg)](https://github.com/gh0stwizard/iana-tld-extractor/actions/workflows/main.yml)
 
 ## Description
 
